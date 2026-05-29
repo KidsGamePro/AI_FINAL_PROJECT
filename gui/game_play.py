@@ -10,31 +10,27 @@ class GameplayScreen:
         self.screen_height = screen.get_height()
         self.ai = ai_engine
 
-        # --- BRIGHT "CANDY POP" COLORS FOR KIDS ---
-        self.COLOR_BG_TOP = (255, 110, 196)       # Bright Pink
-        self.COLOR_BG_BOTTOM = (120, 255, 230)   # Neon Turquoise
-        self.CARD_BG = (255, 255, 255)           # Clean White Card
+        self.COLOR_BG_TOP = (255, 110, 196)        
+        self.COLOR_BG_BOTTOM = (120, 255, 230)   
+        self.CARD_BG = (255, 255, 255)            
         self.TEXT_WHITE = (255, 255, 255)
-        self.TEXT_DARK = (44, 62, 80)            # Dark Slate Text
-        self.HINT_COLOR = (231, 76, 60)          # Bright Red Hint
+        self.TEXT_DARK = (44, 62, 80)             
+        self.HINT_COLOR = (231, 76, 60)           
 
-        # 4 Cheerful Candy Colors for Option Buttons
         self.btn_colors = [
-            (255, 192, 72),   # Sunny Yellow
-            (46, 213, 115),   # Sweet Green
-            (255, 107, 129),  # Raspberry Red
-            (84, 160, 255)    # Sky Blue
+            (255, 192, 72),    
+            (46, 213, 115),    
+            (255, 107, 129),  
+            (84, 160, 255)     
         ]
 
-        self.COLOR_SUCCESS = (46, 204, 113)      # Success Green
-        self.COLOR_FAIL = (231, 76, 60)          # Fail Red
+        self.COLOR_SUCCESS = (46, 204, 113)      
+        self.COLOR_FAIL = (231, 76, 60)          
 
-        # === EMOJI-COMPATIBLE SYSTEM FONTS ===
         self.font = pygame.font.SysFont("Segoe UI Emoji", 30)
         self.large_font = pygame.font.SysFont("Segoe UI Emoji", 50)
         self.hint_font = pygame.font.SysFont("Segoe UI Emoji", 26)
 
-        # 4 Option Buttons Positioning
         self.buttons = [
             pygame.Rect(140, 410, 320, 85),
             pygame.Rect(540, 410, 320, 85),
@@ -42,28 +38,25 @@ class GameplayScreen:
             pygame.Rect(540, 515, 320, 85)
         ]
         
-        # "BACK" Button on Top-Left
         self.btn_back_rect = pygame.Rect(40, 110, 80, 50)
         self.pressed_back_btn = False
         
-        # Game Over Screen Buttons
         self.btn_restart_rect = pygame.Rect(240, 430, 240, 75)
         self.btn_home_rect = pygame.Rect(520, 430, 240, 75)
 
-        # Click State Trackers
         self.pressed_button_index = None  
         self.pressed_end_btn = None       
 
         self.loaded_images = {}
         self.draw_gradient_background()
 
-        # --- GAME SYSTEM & ANIMATIONS ---
         self.question_count = 0        
         self.MAX_QUESTIONS = 10        
         self.game_over = False         
 
         self.show_meme = False
         self.meme_image = None
+        self.meme_type = None
         self.meme_scale = 0.0
         self.meme_start_time = 0
         
@@ -116,6 +109,7 @@ class GameplayScreen:
         self.current_question = self.ai.generate_question()
         self.hint_text = None
         self.show_meme = False
+        self.meme_type = None
         self.meme_scale = 0.0
         self.selected_button_index = None
         self.pressed_button_index = None
@@ -127,17 +121,12 @@ class GameplayScreen:
         self.screen.blit(self.bg_surface, (0, 0))
 
         if not self.game_over:
-            # ==========================================
-            #          ACTIVE GAMEPLAY UI
-            # ==========================================
-            # Progress Board (English)
             progress_rect = pygame.Rect(40, 30, 220, 60)
             pygame.draw.rect(self.screen, (116, 185, 255), progress_rect, border_radius=20)
             pygame.draw.rect(self.screen, (9, 132, 227), progress_rect, width=3, border_radius=20)
             progress_text = self.font.render(f"📋 {self.question_count}/{self.MAX_QUESTIONS}", True, self.TEXT_WHITE)
             self.screen.blit(progress_text, progress_text.get_rect(center=progress_rect.center))
 
-            # BACK BUTTON (With Emoji)
             back_rect = self.btn_back_rect.copy()
             if self.pressed_back_btn:
                 back_rect.y += 4
@@ -149,14 +138,12 @@ class GameplayScreen:
             back_text = self.font.render("↩️", True, self.TEXT_WHITE)
             self.screen.blit(back_text, back_text.get_rect(center=back_rect.center))
 
-            # Score Board (English)
             score_rect = pygame.Rect(740, 30, 220, 60)
             pygame.draw.rect(self.screen, (255, 234, 167), score_rect, border_radius=20)
             pygame.draw.rect(self.screen, (253, 203, 110), score_rect, width=3, border_radius=20)
             score_surface = self.font.render(f"⭐ Score: {self.ai.score}", True, (214, 142, 12))
             self.screen.blit(score_surface, score_surface.get_rect(center=score_rect.center))
 
-            # Central Question Card
             center_card = pygame.Rect(375, 75, 260, 260)
             pygame.draw.rect(self.screen, (45, 52, 54), center_card.move(0, 8), border_radius=40) 
             pygame.draw.rect(self.screen, self.CARD_BG, center_card, border_radius=40)
@@ -168,7 +155,7 @@ class GameplayScreen:
                 self.screen.blit(current_img, (400, 100))
 
             if self.hint_text and not self.show_meme:
-                hint_surface = self.hint_font.render(self.hint_text, True, self.HINT_COLOR)
+                hint_surface = self.hint_surface = self.hint_font.render(self.hint_text, True, self.HINT_COLOR)
                 self.screen.blit(hint_surface, hint_surface.get_rect(center=(self.screen_width // 2, 365)))
 
             if self.shake_timer > 0:
@@ -176,7 +163,6 @@ class GameplayScreen:
                 self.shake_offset = int(random.choice([-12, 12, -8, 8, 0]))
                 if self.shake_timer == 0: self.shake_offset = 0
 
-            # 4 Option Buttons
             for i, rect in enumerate(self.buttons):
                 current_rect = rect.copy()
                 if self.selected_button_index == i and self.meme_type == "try_again":
@@ -199,13 +185,11 @@ class GameplayScreen:
                 text_surface = self.font.render(option_text, True, self.TEXT_WHITE)
                 self.screen.blit(text_surface, text_surface.get_rect(center=current_rect.center))
 
-            # Confetti Particle Animation
             if self.show_meme and self.meme_type == "happy":
                 for confetti in self.confettis:
                     confetti["y"] += confetti["speed"]
                     pygame.draw.circle(self.screen, confetti["color"], (confetti["x"], confetti["y"]), confetti["size"])
 
-            # Meme Pop-up
             if self.show_meme and self.meme_image:
                 if self.meme_scale < 1.0: self.meme_scale += 0.09
                 w, h = int(360 * self.meme_scale), int(360 * self.meme_scale)
@@ -229,9 +213,6 @@ class GameplayScreen:
                             self.selected_button_index = None
 
         else:
-            # ==========================================
-            #          GAME OVER SCREEN (English)
-            # ==========================================
             end_card = pygame.Rect(150, 100, 700, 450)
             pygame.draw.rect(self.screen, (45, 52, 54), end_card.move(0, 10), border_radius=40) 
             pygame.draw.rect(self.screen, self.CARD_BG, end_card, border_radius=40)
@@ -247,7 +228,6 @@ class GameplayScreen:
             comment_text = self.font.render(comment, True, (46, 213, 115))
             self.screen.blit(comment_text, comment_text.get_rect(center=(self.screen_width // 2, 340)))
 
-            # RESTART Button
             r_rect = self.btn_restart_rect.copy()
             if self.pressed_end_btn == "restart":
                 r_rect.y += 5
@@ -259,7 +239,6 @@ class GameplayScreen:
             res_txt = self.font.render("Play Again 🔄", True, self.TEXT_WHITE)
             self.screen.blit(res_txt, res_txt.get_rect(center=r_rect.center))
 
-            # HOME Button
             h_rect = self.btn_home_rect.copy()
             if self.pressed_end_btn == "home":
                 h_rect.y += 5
@@ -319,9 +298,13 @@ class GameplayScreen:
         
         if self.meme_type == "happy":
             self.meme_image = self.load_image("assets/images/memes/happy.png", (360, 360))
+            if not self.meme_image:
+                self.meme_image = self.load_image("assets/memes/happy.png", (360, 360))
             self.create_confetti()
         else:
             self.meme_image = self.load_image("assets/images/memes/try_again.png", (360, 360))
+            if not self.meme_image:
+                self.meme_image = self.load_image("assets/memes/try_again.png", (360, 360))
             self.shake_timer = 25
             if result["hint"]:
                 self.hint_text = result["hint"]

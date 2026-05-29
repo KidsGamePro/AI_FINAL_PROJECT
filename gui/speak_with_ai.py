@@ -18,7 +18,6 @@ class SpeakWithAIScreen:
         if not pygame.mixer.get_init():
             pygame.mixer.init()
 
-        # --- RANGLAR VA USLUBLAR ---
         self.COLOR_BG_TOP = (74, 144, 226)       
         self.COLOR_BG_BOTTOM = (120, 255, 230)   
         self.CARD_BG = (255, 255, 255)
@@ -29,7 +28,6 @@ class SpeakWithAIScreen:
         self.large_font = pygame.font.SysFont("Segoe UI Emoji", 50)
         self.status_font = pygame.font.SysFont("Segoe UI Emoji", 24)
 
-        # --- TUGMALAR ---
         self.btn_back_rect = pygame.Rect(40, 110, 80, 50)
         self.btn_mic_rect = pygame.Rect(320, 450, 360, 80)     
         self.btn_speaker_rect = pygame.Rect(580, 320, 60, 60) 
@@ -45,16 +43,13 @@ class SpeakWithAIScreen:
         self.is_listening = False  
         self.recognized_text = ""
 
-        # --- MEM VA BLUR HOLATLARI ---
         self.show_meme = False
         self.is_correct_answer = False  
         self.blurred_bg_surface = None  
-        self.meme_display_start_time = 0  # Mem chiqqan vaqtni saqlash uchun ⏱️
+        self.meme_display_start_time = 0   
 
-        # --- VOSK OFFLINE MODELINI YUKLASH ---
         self.model_path = "model"
         if not os.path.exists(self.model_path):
-            print("[ERROR] 'model' papkasi topilmadi!")
             self.model = None
         else:
             self.model = Model(self.model_path)
@@ -64,7 +59,6 @@ class SpeakWithAIScreen:
         self.audio_queue = queue.Queue()
         self.audio_stream = None
 
-        # --- AVTO-STOP TAYMERI ---
         self.recording_start_time = 0
         self.MAX_RECORDING_SECONDS = 6  
 
@@ -120,8 +114,8 @@ class SpeakWithAIScreen:
             try:
                 pygame.mixer.music.load(audio_path)
                 pygame.mixer.music.play()
-            except Exception as e:
-                print(f"[AUDIO ERROR] {e}")
+            except Exception:
+                pass
 
     def next_question(self):
         if self.question_count >= self.MAX_QUESTIONS:
@@ -157,25 +151,25 @@ class SpeakWithAIScreen:
         while not self.audio_queue.empty():
             complete_data += self.audio_queue.get()
 
-        self.vosk_recognizer.AcceptWaveform(complete_data)
-        result_json = json.loads(self.vosk_recognizer.Result())
-        text = result_json.get("text", "").strip().upper()
+        if self.model and self.vosk_recognizer:
+            self.vosk_recognizer.AcceptWaveform(complete_data)
+            result_json = json.loads(self.vosk_recognizer.Result())
+            text = result_json.get("text", "").strip().upper()
+        else:
+            text = ""
         
-        # --- [UNK] FILTRLASH SHU YERDA 🚀 ---
         if text == "[UNK]" or text == "":
-            self.recognized_text = ""  # Bo'sh qoldiramiz, draw qismida buni chiroyli gapga aylantiramiz
+            self.recognized_text = ""   
         else:
             self.recognized_text = text
 
         correct_word = self.current_question["correct_word"].upper()
 
-        # Aqlli solishtirish
         is_correct = (correct_word in text) and (text != "")
         if not is_correct and len(text) >= 3 and text != "[UNK]":
             if text[0] == correct_word[0] and text[-1] == correct_word[-1]:
                 is_correct = True
 
-        # Mem va blur holatini ishga tushirish
         self.make_blur_background() 
         self.show_meme = True
         self.meme_display_start_time = pygame.time.get_ticks() 
@@ -229,13 +223,11 @@ class SpeakWithAIScreen:
         target_surf.blit(mic_text, mic_text.get_rect(center=self.btn_mic_rect.center))
 
     def draw(self):
-        # 1. AVTOMATIK MIKROFON TO'XTATISH
         if self.is_listening:
             elapsed_time = (pygame.time.get_ticks() - self.recording_start_time) / 1000
             if elapsed_time >= self.MAX_RECORDING_SECONDS:
                 self.stop_and_analyze()
 
-        # 2. AVTOMATIK MEMNI YOPISH TAYMERI (2 SONIYA)
         if self.show_meme:
             meme_elapsed = pygame.time.get_ticks() - self.meme_display_start_time
             if meme_elapsed >= 2200:
@@ -250,7 +242,6 @@ class SpeakWithAIScreen:
                     self.is_listening = False
                     self.status_text = "Click START MIC to try again! 🎙️"
 
-        # 3. INTERFEYSNI CHIZISH
         if self.show_meme and self.blurred_bg_surface:
             self.screen.blit(self.blurred_bg_surface, (0, 0))
             
@@ -269,7 +260,6 @@ class SpeakWithAIScreen:
             if meme_img:
                 self.screen.blit(meme_img, (390, 190))
             
-            # Tushunarsiz ovozlarni chiroyli matnga o'girish
             if self.recognized_text:
                 said_text = f'You said: "{self.recognized_text}"'
             else:
@@ -305,7 +295,6 @@ class SpeakWithAIScreen:
         pygame.display.flip()
 
     def handle_click(self, mouse_pos):
-        # Mem ochiq turganda ekranga bosishlar umuman ishlamaydi (Bloklanadi)
         if self.show_meme:
             return
 

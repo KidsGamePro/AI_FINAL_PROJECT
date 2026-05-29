@@ -2,29 +2,39 @@ import random
 
 class AdaptiveAIEngine:
     def __init__(self, dataset):
-        """
-        AI Tizimini ishga tushirish.
-        dataset: O'yin ichidagi rasm va so'zlar ro'yxati (lug'at)
-        """
         self.dataset = dataset
         self.score = 0
-        # Bolaning xatolarini kuzatib borish uchun lug'at (AI asosi)
         self.mistake_tracker = {} 
 
     def generate_question(self):
-        """
-        Yangi savol va 4 ta javob variantini tayyorlaydi.
-        """
-        # Dataset ichidan tasodifiy bitta obyektni tanlaymiz (Masalan: Kuchuk)
-        correct_item = random.choice(self.dataset)
+        # Adaptiv mantiq: Agar xato qilingan so'zlar bo'lsa, ularni qayta so'rash ehtimoli 40%
+        # Bu o'yinni bola uchun haqiqiy intellektual moslashuvchan qiladi
+        wrong_words = [word for word, count in self.mistake_tracker.items() if count > 0]
+        
+        correct_item = None
+        if wrong_words and random.random() < 0.40:
+            # Xato qilingan so'zlar ichidan tasodifiy birini tanlash
+            chosen_word = random.choice(wrong_words)
+            for item in self.dataset:
+                if item["word"] == chosen_word:
+                    correct_item = item
+                    break
+
+        # Agar xato qilingan so'zlar bo'lmasa yoki 40% lik imkoniyatdan o'tmasa, umumiy bazadan tanlaydi
+        if not correct_item:
+            correct_item = random.choice(self.dataset)
+
         image_path = correct_item["image"]
         correct_answer = correct_item["word"]
 
-        # Noto'g'ri javoblarni tanlash (variantlar orasida to'g'ri javob takrorlanmasligi uchun)
+        # Noto'g'ri javoblar hovuzini yig'ish
         wrong_pool = [item["word"] for item in self.dataset if item["word"] != correct_answer]
-        wrong_answers = random.sample(wrong_pool, 3)
+        
+        # Dataset xavfsizligi: Agar baza juda kichik bo'lsa, crash bo'lishini oldini olish
+        sample_size = min(3, len(wrong_pool))
+        wrong_answers = random.sample(wrong_pool, sample_size) if wrong_pool else []
 
-        # To'g'ri va noto'g'ri javoblarni birlashtirib, aralashtiramiz
+        # Variantlarni birlashtirish va aralashtirish
         options = wrong_answers + [correct_answer]
         random.shuffle(options)
 
@@ -35,42 +45,35 @@ class AdaptiveAIEngine:
         }
 
     def check_answer(self, user_answer, correct_answer):
-        """
-        Bolaning javobini tekshiradi va AI mantiqini ishga tushiradi.
-        """
         if user_answer == correct_answer:
-            self.score += 10 # To'g'ri bo'lsa 10 ochko
-            # Agar bola bu so'zda oldin xato qilgan bo'lsa, trekkerdan o'chiramiz
+            self.score += 10  
+            
+            # Agar oldin xato qilgan bo'lsa va endi to'g'ri topsa, ro'yxatdan o'chiradi yoki kamaytiradi
             if correct_answer in self.mistake_tracker:
                 del self.mistake_tracker[correct_answer]
+                
             return {
                 "status": "correct",
                 "score": self.score,
-                "meme_type": "happy" # GUI bunga qarab quvnoq mem ko'rsatadi
+                "meme_type": "happy"  
             }
         else:
-            # Bola xato qildi! AI buni eslab qoladi
             if correct_answer not in self.mistake_tracker:
                 self.mistake_tracker[correct_answer] = 1
             else:
                 self.mistake_tracker[correct_answer] += 1
 
-            # Adaptive AI (Moslashuvchanlik) qismi:
-            # Agar bola bitta so'zda 2 marta yoki undan ko'p xato qilsa, yordam (Hint) beramiz
             hints = None
+            # Bolaga motivatsiya beruvchi dinamik yordamchi shama (Hint)
             if self.mistake_tracker[correct_answer] >= 2:
                 hints = f"Hint: This word starts with '{correct_answer[0].upper()}'"
 
             return {
                 "status": "wrong",
                 "score": self.score,
-                "meme_type": "try_again", # GUI bunga qarab "qayta urinish" memini ko'rsatadi
+                "meme_type": "try_again",  
                 "hint": hints
             }
 
     def get_adaptive_difficulty(self):
-        """
-        O'yin davomida bolaga qiyin bo'layotgan so'zlarni qaytaradi.
-        Keyinchalik shu so'zlarni o'yin ko'proq qaytara boshlaydi.
-        """
         return [word for word, count in self.mistake_tracker.items() if count > 0]

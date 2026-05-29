@@ -8,7 +8,7 @@ class EnglishAIEngine:
         self.score = 0
         self.mistake_tracker = {}
         
-        # Audio fayllar manzili qo'shildi
+        
         self.dataset = [
             {
                 "image": "assets/images/banana.png",
