@@ -2,6 +2,13 @@ import pygame
 import sys
 import os
 import random
+from ai_engine.effects import StarParticle, ShakeEffect
+
+try:
+    from ai_engine.audio_manager import AudioManager
+except Exception:
+    AudioManager = None
+
 
 class GameplayScreen:
     def __init__(self, screen, ai_engine):
@@ -18,10 +25,10 @@ class GameplayScreen:
         self.HINT_COLOR = (231, 76, 60)           
 
         self.btn_colors = [
-            (255, 192, 72),    
-            (46, 213, 115),    
-            (255, 107, 129),  
-            (84, 160, 255)     
+            (255, 192, 72),    # Orange
+            (46, 213, 115),    # Green
+            (255, 107, 129),   # Pink
+            (84, 160, 255)     # Blue
         ]
 
         self.COLOR_SUCCESS = (46, 204, 113)      
@@ -50,6 +57,18 @@ class GameplayScreen:
         self.loaded_images = {}
         self.draw_gradient_background()
 
+        try:
+            self.audio = AudioManager() if AudioManager else None
+        except Exception:
+            self.audio = None
+
+        self.instruction_played = False
+        if self.audio:
+            try:
+                self.audio.play_music("assets/sounds/background.mp3", volume=0.10)
+            except Exception as e:
+                print(f"GameplayScreen background music failed: {e}")
+
         self.question_count = 0        
         self.MAX_QUESTIONS = 10        
         self.game_over = False         
@@ -60,10 +79,10 @@ class GameplayScreen:
         self.meme_scale = 0.0
         self.meme_start_time = 0
         
-        self.shake_offset = 0
-        self.shake_timer = 0
         self.confettis = []
         self.selected_button_index = None
+        self.shake_effect = ShakeEffect(intensity=10, duration=15)
+        self.particles = []
         
         self.next_question()
 
@@ -103,6 +122,7 @@ class GameplayScreen:
 
     def next_question(self):
         if self.question_count >= self.MAX_QUESTIONS:
+            self.game_over = True
             return
 
         self.question_count += 1
@@ -115,83 +135,90 @@ class GameplayScreen:
         self.pressed_button_index = None
         self.pressed_end_btn = None
         self.pressed_back_btn = False
-        self.shake_offset = 0
+
+        if not self.instruction_played and self.audio:
+            self.audio.speak("In this game, choose the correct word that matches the picture. Have fun!")
+            self.instruction_played = True
 
     def draw(self):
-        self.screen.blit(self.bg_surface, (0, 0))
+        # Render scene on temporary buffer to support global screen shaking
+        scene_surf = pygame.Surface((self.screen_width, self.screen_height))
+        scene_surf.blit(self.bg_surface, (0, 0))
 
         if not self.game_over:
             progress_rect = pygame.Rect(40, 30, 220, 60)
-            pygame.draw.rect(self.screen, (116, 185, 255), progress_rect, border_radius=20)
-            pygame.draw.rect(self.screen, (9, 132, 227), progress_rect, width=3, border_radius=20)
+            pygame.draw.rect(scene_surf, (116, 185, 255), progress_rect, border_radius=20)
+            pygame.draw.rect(scene_surf, (9, 132, 227), progress_rect, width=3, border_radius=20)
             progress_text = self.font.render(f"📋 {self.question_count}/{self.MAX_QUESTIONS}", True, self.TEXT_WHITE)
-            self.screen.blit(progress_text, progress_text.get_rect(center=progress_rect.center))
+            scene_surf.blit(progress_text, progress_text.get_rect(center=progress_rect.center))
 
             back_rect = self.btn_back_rect.copy()
             if self.pressed_back_btn:
                 back_rect.y += 4
-                pygame.draw.rect(self.screen, (231, 76, 60), back_rect, border_radius=15)
+                pygame.draw.rect(scene_surf, (231, 76, 60), back_rect, border_radius=15)
             else:
-                pygame.draw.rect(self.screen, (45, 52, 54), back_rect.move(0, 4), border_radius=15)
-                pygame.draw.rect(self.screen, (255, 107, 129), back_rect, border_radius=15)
-            pygame.draw.rect(self.screen, self.TEXT_WHITE, back_rect, width=2, border_radius=15)
+                pygame.draw.rect(scene_surf, (45, 52, 54), back_rect.move(0, 4), border_radius=15)
+                pygame.draw.rect(scene_surf, (255, 107, 129), back_rect, border_radius=15)
+            pygame.draw.rect(scene_surf, self.TEXT_WHITE, back_rect, width=2, border_radius=15)
             back_text = self.font.render("↩️", True, self.TEXT_WHITE)
-            self.screen.blit(back_text, back_text.get_rect(center=back_rect.center))
+            scene_surf.blit(back_text, back_text.get_rect(center=back_rect.center))
 
             score_rect = pygame.Rect(740, 30, 220, 60)
-            pygame.draw.rect(self.screen, (255, 234, 167), score_rect, border_radius=20)
-            pygame.draw.rect(self.screen, (253, 203, 110), score_rect, width=3, border_radius=20)
+            pygame.draw.rect(scene_surf, (255, 234, 167), score_rect, border_radius=20)
+            pygame.draw.rect(scene_surf, (253, 203, 110), score_rect, width=3, border_radius=20)
             score_surface = self.font.render(f"⭐ Score: {self.ai.score}", True, (214, 142, 12))
-            self.screen.blit(score_surface, score_surface.get_rect(center=score_rect.center))
+            scene_surf.blit(score_surface, score_surface.get_rect(center=score_rect.center))
 
+            # Picture card container
             center_card = pygame.Rect(375, 75, 260, 260)
-            pygame.draw.rect(self.screen, (45, 52, 54), center_card.move(0, 8), border_radius=40) 
-            pygame.draw.rect(self.screen, self.CARD_BG, center_card, border_radius=40)
-            pygame.draw.rect(self.screen, (9, 132, 227), center_card, width=5, border_radius=40) 
+            pygame.draw.rect(scene_surf, (45, 52, 54), center_card.move(0, 8), border_radius=40) 
+            pygame.draw.rect(scene_surf, self.CARD_BG, center_card, border_radius=40)
+            pygame.draw.rect(scene_surf, (9, 132, 227), center_card, width=5, border_radius=40) 
 
             image_path = self.current_question["image"]
             current_img = self.load_image(image_path, (210, 210))
             if current_img:
-                self.screen.blit(current_img, (400, 100))
+                scene_surf.blit(current_img, (400, 100))
 
             if self.hint_text and not self.show_meme:
-                hint_surface = self.hint_surface = self.hint_font.render(self.hint_text, True, self.HINT_COLOR)
-                self.screen.blit(hint_surface, hint_surface.get_rect(center=(self.screen_width // 2, 365)))
+                hint_surface = self.hint_font.render(self.hint_text, True, self.HINT_COLOR)
+                scene_surf.blit(hint_surface, hint_surface.get_rect(center=(self.screen_width // 2, 365)))
 
-            if self.shake_timer > 0:
-                self.shake_timer -= 1
-                self.shake_offset = int(random.choice([-12, 12, -8, 8, 0]))
-                if self.shake_timer == 0: self.shake_offset = 0
-
+            # Draw option buttons
             for i, rect in enumerate(self.buttons):
                 current_rect = rect.copy()
-                if self.selected_button_index == i and self.meme_type == "try_again":
-                    current_rect.x += self.shake_offset
-
                 current_btn_color = self.btn_colors[i]
                 if self.selected_button_index == i:
                     current_btn_color = self.COLOR_SUCCESS if self.meme_type == "happy" else self.COLOR_FAIL
 
                 if self.pressed_button_index == i and not self.show_meme:
                     current_rect.y += 5
-                    pygame.draw.rect(self.screen, current_btn_color, current_rect, border_radius=25)
+                    pygame.draw.rect(scene_surf, current_btn_color, current_rect, border_radius=25)
                 else:
-                    pygame.draw.rect(self.screen, (45, 52, 54), current_rect.move(0, 5), border_radius=25)
-                    pygame.draw.rect(self.screen, current_btn_color, current_rect, border_radius=25)
+                    pygame.draw.rect(scene_surf, (45, 52, 54), current_rect.move(0, 5), border_radius=25)
+                    pygame.draw.rect(scene_surf, current_btn_color, current_rect, border_radius=25)
                 
-                pygame.draw.rect(self.screen, self.TEXT_WHITE, current_rect, width=3, border_radius=25) 
+                pygame.draw.rect(scene_surf, self.TEXT_WHITE, current_rect, width=3, border_radius=25) 
                 
                 option_text = self.current_question["options"][i]
                 text_surface = self.font.render(option_text, True, self.TEXT_WHITE)
-                self.screen.blit(text_surface, text_surface.get_rect(center=current_rect.center))
+                scene_surf.blit(text_surface, text_surface.get_rect(center=current_rect.center))
 
+            # Update and draw star particles
+            self.particles = [p for p in self.particles if p.is_alive()]
+            for p in self.particles:
+                p.update()
+                p.draw(scene_surf)
+
+            # Draw screen overlay memes
             if self.show_meme and self.meme_type == "happy":
                 for confetti in self.confettis:
                     confetti["y"] += confetti["speed"]
-                    pygame.draw.circle(self.screen, confetti["color"], (confetti["x"], confetti["y"]), confetti["size"])
+                    pygame.draw.circle(scene_surf, confetti["color"], (confetti["x"], confetti["y"]), confetti["size"])
 
             if self.show_meme and self.meme_image:
-                if self.meme_scale < 1.0: self.meme_scale += 0.09
+                if self.meme_scale < 1.0: 
+                    self.meme_scale += 0.1
                 w, h = int(360 * self.meme_scale), int(360 * self.meme_scale)
                 if w > 0 and h > 0:
                     scaled_meme = pygame.transform.scale(self.meme_image, (w, h))
@@ -199,57 +226,56 @@ class GameplayScreen:
                     
                     overlay = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
                     overlay.fill((0, 0, 0, 80))
-                    self.screen.blit(overlay, (0, 0))
-                    self.screen.blit(scaled_meme, meme_rect)
+                    scene_surf.blit(overlay, (0, 0))
+                    scene_surf.blit(scaled_meme, meme_rect)
 
-                if pygame.time.get_ticks() - self.meme_start_time > 1500:
+                if pygame.time.get_ticks() - self.meme_start_time > 1800:
                     self.show_meme = False  
-                    if self.question_count >= self.MAX_QUESTIONS:
-                        self.game_over = True
+                    if self.meme_type == "happy":
+                        self.next_question()
                     else:
-                        if self.meme_type == "happy":
-                            self.next_question()
-                        else:
-                            self.selected_button_index = None
+                        self.selected_button_index = None
 
         else:
+            # End Screen
             end_card = pygame.Rect(150, 100, 700, 450)
-            pygame.draw.rect(self.screen, (45, 52, 54), end_card.move(0, 10), border_radius=40) 
-            pygame.draw.rect(self.screen, self.CARD_BG, end_card, border_radius=40)
-            pygame.draw.rect(self.screen, (255, 154, 158), end_card, width=6, border_radius=40)
+            pygame.draw.rect(scene_surf, (45, 52, 54), end_card.move(0, 10), border_radius=40) 
+            pygame.draw.rect(scene_surf, self.CARD_BG, end_card, border_radius=40)
+            pygame.draw.rect(scene_surf, (255, 154, 158), end_card, width=6, border_radius=40)
 
             win_title = self.large_font.render("🎉 GREAT JOB! 🎉", True, (255, 107, 129))
-            self.screen.blit(win_title, win_title.get_rect(center=(self.screen_width // 2, 180)))
+            scene_surf.blit(win_title, win_title.get_rect(center=(self.screen_width // 2, 180)))
 
             final_score_text = self.font.render(f"You collected ⭐ {self.ai.score} Points!", True, self.TEXT_DARK)
-            self.screen.blit(final_score_text, final_score_text.get_rect(center=(self.screen_width // 2, 280)))
+            scene_surf.blit(final_score_text, final_score_text.get_rect(center=(self.screen_width // 2, 280)))
             
-            comment = "Super Superstar! 🌟" if self.ai.score >= 80 else "You are Awesome! ❤️"
+            comment = "Super Superstar! 🌟" if self.ai.score >= 120 else "You are Awesome! ❤️"
             comment_text = self.font.render(comment, True, (46, 213, 115))
-            self.screen.blit(comment_text, comment_text.get_rect(center=(self.screen_width // 2, 340)))
+            scene_surf.blit(comment_text, comment_text.get_rect(center=(self.screen_width // 2, 340)))
 
             r_rect = self.btn_restart_rect.copy()
             if self.pressed_end_btn == "restart":
                 r_rect.y += 5
-                pygame.draw.rect(self.screen, (0, 184, 148), r_rect, border_radius=25)
             else:
-                pygame.draw.rect(self.screen, (45, 52, 54), r_rect.move(0, 5), border_radius=25)
-                pygame.draw.rect(self.screen, (0, 184, 148), r_rect, border_radius=25)
-            pygame.draw.rect(self.screen, self.TEXT_WHITE, r_rect, width=3, border_radius=25)
+                pygame.draw.rect(scene_surf, (45, 52, 54), r_rect.move(0, 5), border_radius=25)
+            pygame.draw.rect(scene_surf, (0, 184, 148), r_rect, border_radius=25)
+            pygame.draw.rect(scene_surf, self.TEXT_WHITE, r_rect, width=3, border_radius=25)
             res_txt = self.font.render("Play Again 🔄", True, self.TEXT_WHITE)
-            self.screen.blit(res_txt, res_txt.get_rect(center=r_rect.center))
+            scene_surf.blit(res_txt, res_txt.get_rect(center=r_rect.center))
 
             h_rect = self.btn_home_rect.copy()
             if self.pressed_end_btn == "home":
                 h_rect.y += 5
-                pygame.draw.rect(self.screen, (255, 159, 26), h_rect, border_radius=25)
             else:
-                pygame.draw.rect(self.screen, (45, 52, 54), h_rect.move(0, 5), border_radius=25)
-                pygame.draw.rect(self.screen, (255, 159, 26), h_rect, border_radius=25)
-            pygame.draw.rect(self.screen, self.TEXT_WHITE, h_rect, width=3, border_radius=25)
+                pygame.draw.rect(scene_surf, (45, 52, 54), h_rect.move(0, 5), border_radius=25)
+            pygame.draw.rect(scene_surf, (255, 159, 26), h_rect, border_radius=25)
+            pygame.draw.rect(scene_surf, self.TEXT_WHITE, h_rect, width=3, border_radius=25)
             home_txt = self.font.render("Menu 🏠", True, self.TEXT_WHITE)
-            self.screen.blit(home_txt, home_txt.get_rect(center=h_rect.center))
+            scene_surf.blit(home_txt, home_txt.get_rect(center=h_rect.center))
 
+        # Blit buffer to screen applying the shake effect offset
+        self.shake_effect.update()
+        self.screen.blit(scene_surf, (self.shake_effect.offset_x, self.shake_effect.offset_y))
         pygame.display.flip()
 
     def handle_click(self, mouse_pos):
@@ -259,6 +285,10 @@ class GameplayScreen:
                 
             if self.btn_back_rect.collidepoint(mouse_pos):
                 self.pressed_back_btn = True
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
+                if self.audio:
+                    self.audio.stop_music()
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, {"action": "GO_HOME"}))
                 return
 
@@ -269,8 +299,9 @@ class GameplayScreen:
                     break
         else:
             if self.btn_restart_rect.collidepoint(mouse_pos):
-                self.ai.score = 0
-                self.ai.mistake_tracker = {}
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
+                self.ai.reset_progress()
                 self.question_count = 0
                 self.game_over = False
                 self.show_meme = False
@@ -280,6 +311,8 @@ class GameplayScreen:
                 self.next_question()
                 
             elif self.btn_home_rect.collidepoint(mouse_pos):
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
                 self.pressed_end_btn = None
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, {"action": "GO_HOME"}))
 
@@ -292,26 +325,41 @@ class GameplayScreen:
         self.selected_button_index = button_index
         clicked_answer = self.current_question["options"][button_index]
         correct_answer = self.current_question["correct_word"]
+        
+        # Check answer using adaptive engine
         result = self.ai.check_answer(clicked_answer, correct_answer)
 
         self.meme_type = result["meme_type"]
         
         if self.meme_type == "happy":
             self.meme_image = self.load_image("assets/images/memes/happy.png", (360, 360))
-            if not self.meme_image:
-                self.meme_image = self.load_image("assets/memes/happy.png", (360, 360))
             self.create_confetti()
+            
+            # Spawn star particles from the center
+            for _ in range(25):
+                particle = StarParticle(random.randint(300, 700), random.randint(150, 400))
+                self.particles.append(particle)
+            
+            try:
+                if self.audio:
+                    self.audio.play_file("assets/sounds/applause.mp3", volume=0.50)
+                    # self.audio.speak("Yes! Correct!")
+                    self.audio.speak("Wow! That is correct, so clever!")
+            except Exception:
+                pass
+            # self.show_meme = True
+            # self.meme_scale = 0.0
+            # self.meme_start_time = pygame.time.get_ticks()
         else:
-            self.meme_image = self.load_image("assets/images/memes/try_again.png", (360, 360))
-            if not self.meme_image:
-                self.meme_image = self.load_image("assets/memes/try_again.png", (360, 360))
-            self.shake_timer = 25
+            # Trigger screen shake
+            self.shake_effect.trigger()
+            
             if result["hint"]:
                 self.hint_text = result["hint"]
-
-        self.show_meme = True
-        self.meme_scale = 0.0
-        self.meme_start_time = pygame.time.get_ticks()
-
-
-        #done till here
+            try:
+                if self.audio:
+                    self.audio.speak("Try again! You can do it!")
+            except Exception:
+                pass
+            self.show_meme = False
+            self.selected_button_index = None
