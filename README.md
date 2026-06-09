@@ -87,7 +87,7 @@ python main.py
 
 | Start Screen |
 |---|
-| ![AI Kiddy Learner Start Screen](assets/screenshots/start_screen.png) |
+<img src="assets/screenshots/start_screen.png" width="500" alt="AI Kiddy Learner Start Screen"/>
 
 The start screen presents two modes with large, colorful buttons suitable for young children.
 
