@@ -99,10 +99,10 @@ Word	Hint
 🐱 CAT	It says 'Meow' and loves to drink milk!
 🐶 DOG	Man's best friend! It says 'Woof Woof'!
 
-##🎙️ Voice User Interface (VUI) — Bonus Feature
+## 🎙️ Voice User Interface (VUI) — Bonus Feature
 The Speak with AI mode captures the child's spoken answer via microphone, transcribes it using OpenAI Whisper, and speaks back using text-to-speech synthesis. This earns up to +15 bonus marks per the assignment rubric.
 
-###📹 YouTube Presentation
+### 📹 YouTube Presentation
 🎬 Video Link: 
 
 ### 📄 License
