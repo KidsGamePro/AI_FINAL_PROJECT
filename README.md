@@ -32,27 +32,29 @@ Built with Python and Pygame for the **CCC1243 Artificial Intelligence** Group P
 
 ## 🗂️ Project Structure
 
+```
 AI_FINAL_PROJECT/
 │
-├── main.py # Entry point — initializes Pygame and launches the app
+├── main.py                  # Entry point — initializes Pygame and launches the app
 │
-├── ai_engine/ # Core AI logic
-│ ├── init.py
-│ └── adaptive_ai.py # Adaptive feedback and mistake tracking engine
+├── ai_engine/               # Core AI logic
+│   ├── __init__.py
+│   └── adaptive_ai.py       # Adaptive feedback and mistake tracking engine
 │
 ├── assets/
-│ ├── images/ # Vocabulary images (apple, banana, cat, dog, lion)
-│ │ └── memes/ # Reaction images (happy.png, try_again.png)
-│ └── sounds/ # Audio pronunciation files (.mp3)
+│   ├── images/              # Vocabulary images (apple, banana, cat, dog, lion)
+│   │   └── memes/           # Reaction images (happy.png, try_again.png)
+│   └── sounds/              # Audio pronunciation files (.mp3)
 │
-├── game_data/ # Persistent game/score data
-├── gui/ # All screen UI modules
-│ └── start_screen.py # Main start screen with mode selection
-├── integration/ # Voice/AI integration modules
-├── model/ # AI/ML model files
+├── game_data/               # Persistent game/score data
+├── gui/                     # All screen UI modules
+│   └── start_screen.py      # Main start screen with mode selection
+├── integration/             # Voice/AI integration modules
+├── model/                   # AI/ML model files
 │
 ├── .gitignore
 └── README.md
+```
 
 ---
 
