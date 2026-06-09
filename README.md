@@ -87,12 +87,12 @@ python main.py
 
 <table>
   <tr>
-    <td align="center"><img src="assets/start_screen.png" width="400"/><br/><b>Start Screen</b></td>
-    <td align="center"><img src="assets/celebrate.png" width="400"/><br/><b>Quiz Screen</b></td>
+    <td align="center"><img src="assets/screenshots/start_screen.png" width="400"/><br/><b>Start Screen</b></td>
+    <td align="center"><img src="assets/screenshots/celebrate.png" width="400"/><br/><b>Quiz Screen</b></td>
   </tr>
   <tr>
-    <td align="center"><img src="assets/hint.png" width="400"/><br/><b>Correct Answer</b></td>
-    <td align="center"><img src="assets/voice_input.png" width="400"/><br/><b>Score Screen</b></td>
+    <td align="center"><img src="assets/screenshots/hint.png" width="400"/><br/><b>Correct Answer</b></td>
+    <td align="center"><img src="assets/screenshots/voice_input.png" width="400"/><br/><b>Score Screen</b></td>
   </tr>
 </table>
 
