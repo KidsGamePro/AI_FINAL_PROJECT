@@ -8,8 +8,8 @@ class EnglishAIEngine:
         self.score = 0
         self.mistake_tracker = {}
         
-        # Audio fayllar manzili qo'shildi
-        self.dataset = [
+        
+        self.dataset = [  #pip install -U openai-whisper
             {
                 "image": "assets/images/banana.png",
                 "audio": "assets/sounds/banana.mp3",
