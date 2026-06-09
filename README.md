@@ -88,11 +88,11 @@ python main.py
 <table>
   <tr>
     <td align="center"><img src="assets/screenshots/start_screen.png" width="400"/><br/><b>Start Screen</b></td>
-    <td align="center"><img src="assets/screenshots/celebrate.png" width="400"/><br/><b>Quiz Screen</b></td>
+    <td align="center"><img src="assets/screenshots/celebrate.png" width="400"/><br/><b>Celebrating Success</b></td>
   </tr>
   <tr>
-    <td align="center"><img src="assets/screenshots/hint.png" width="400"/><br/><b>Correct Answer</b></td>
-    <td align="center"><img src="assets/screenshots/voice_input.png" width="400"/><br/><b>Score Screen</b></td>
+    <td align="center"><img src="assets/screenshots/hint.png" width="400"/><br/><b>Providinig Hint </b></td>
+    <td align="center"><img src="assets/screenshots/voice_input.png" width="400"/><br/><b>Voice Interface</b></td>
   </tr>
 </table>
 
