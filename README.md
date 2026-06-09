@@ -14,7 +14,7 @@ Built with Python and Pygame for the **CCC1243 Artificial Intelligence** Group P
 | **Institution** | Albukhary International University |
 | **Target Audience** | Kindergarten children aged 4–6 |
 | **Educational Goal** | English Vocabulary Learning |
-| **Submission Date** | 25th June 2026 |
+| **Submission Deadline** | 25th June 2026 |
 
 ---
 
