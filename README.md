@@ -85,13 +85,11 @@ python main.py
 ```
 ## 🖼️ Screenshots
 
-| Start Screen |
-|---|
 <img src="assets/screenshots/start_screen.png" width="500" alt="AI Kiddy Learner Start Screen"/>
 
 The start screen presents two modes with large, colorful buttons suitable for young children.
 
-📚 Vocabulary Dataset
+## 📚 Vocabulary Dataset
 The current dataset includes the following words, each with an image, audio file, 4 answer choices, and a hint:
 
 Word	Hint
@@ -101,11 +99,11 @@ Word	Hint
 🐱 CAT	It says 'Meow' and loves to drink milk!
 🐶 DOG	Man's best friend! It says 'Woof Woof'!
 
-🎙️ Voice User Interface (VUI) — Bonus Feature
+##🎙️ Voice User Interface (VUI) — Bonus Feature
 The Speak with AI mode captures the child's spoken answer via microphone, transcribes it using OpenAI Whisper, and speaks back using text-to-speech synthesis. This earns up to +15 bonus marks per the assignment rubric.
 
-📹 YouTube Presentation
+###📹 YouTube Presentation
 🎬 Video Link: 
 
-📄 License
+### 📄 License
 This project was developed for academic purposes under CCC1243 at Albukhary International University.
