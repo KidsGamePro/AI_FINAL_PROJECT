@@ -77,7 +77,7 @@ pip install openai-whisper   # Required for Speak with AI (VUI) mode
 
 Run the Game
 python main.py
-<img width="2018" height="1406" alt="Start Screen" src="https://github.com/user-attachments/assets/2e9a6b74-3a97-4949-9c5e-abb702ec6f37" />
+<img width="2018" height="1406" alt="Start Screen" src="https://github.com/user-attachments/assets/images/screenshots/start_screen.png" />
 
 The start screen presents two modes with large, colorful buttons suitable for young children.
 
