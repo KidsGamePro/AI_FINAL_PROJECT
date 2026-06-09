@@ -83,8 +83,12 @@ pip install openai-whisper
 ```bash
 python main.py
 ```
-<img width="2018" height="1406" alt="Start Screen" src="https://github.com/user-attachments/assets/images/screenshots/start_screen.png" />
-assets/screenshots
+## 🖼️ Screenshots
+
+| Start Screen |
+|---|
+| ![AI Kiddy Learner Start Screen](assets/images/screenshots/start_screen.png) |
+
 The start screen presents two modes with large, colorful buttons suitable for young children.
 
 📚 Vocabulary Dataset
