@@ -31,6 +31,7 @@ Built with Python and Pygame for the **CCC1243 Artificial Intelligence** Group P
 ---
 
 ## 🗂️ Project Structure
+
 AI_FINAL_PROJECT/
 │
 ├── main.py # Entry point — initializes Pygame and launches the app
@@ -92,13 +93,6 @@ Word	Hint
 
 🎙️ Voice User Interface (VUI) — Bonus Feature
 The Speak with AI mode captures the child's spoken answer via microphone, transcribes it using OpenAI Whisper, and speaks back using text-to-speech synthesis. This earns up to +15 bonus marks per the assignment rubric.
-
-👥 Group Members
-Name	Student ID	Contribution
-[Name 1]	[ID]	[e.g., AI Engine & Adaptive Logic]
-[Name 2]	[ID]	[e.g., GUI & Start Screen]
-[Name 3]	[ID]	[e.g., Voice Integration (VUI)]
-[Name 4]	[ID]	[e.g., Assets & Game Data]
 
 📹 YouTube Presentation
 🎬 Video Link: 
