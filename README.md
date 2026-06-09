@@ -85,7 +85,15 @@ python main.py
 ```
 ## 🖼️ Screenshots
 
-<img src="assets/screenshots/start_screen.png" width="500" alt="AI Kiddy Learner Start Screen"/>
+<img src="assets/screenshots/start_screen.png" width="400" alt="AI Kiddy Learner Start Screen"/>
+
+The start screen presents two modes with large, colorful buttons suitable for young children.
+<img src="assets/screenshots/celebrate.png" width="400" alt="AI Kiddy Learner Start Screen"/>
+
+The start screen presents two modes with large, colorful buttons suitable for young children.<img src="assets/screenshots/hint.png" width="400" alt="AI Kiddy Learner Start Screen"/>
+
+The start screen presents two modes with large, colorful buttons suitable for young children.<img src="assets/screenshots/voice_input.png" width="400" alt="AI Kiddy Learner Start Screen"/>
+
 
 The start screen presents two modes with large, colorful buttons suitable for young children.
 
