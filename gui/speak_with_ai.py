@@ -4,8 +4,14 @@ import os
 import random
 import threading
 import json
+import math
 import queue
+from ai_engine.effects import ConfettiParticle, ShakeEffect, StarParticle
 # sounddevice and vosk are optional; import them at runtime and disable features if missing
+try:
+    from ai_engine.audio_manager import AudioManager
+except Exception:
+    AudioManager = None
 
 class SpeakWithAIScreen:
     def __init__(self, screen, ai_engine):
@@ -14,8 +20,11 @@ class SpeakWithAIScreen:
         self.screen_height = screen.get_height()
         self.ai = ai_engine
 
-        if not pygame.mixer.get_init():
-            pygame.mixer.init()
+        try:
+            if not pygame.mixer.get_init():
+                pygame.mixer.init()
+        except Exception as e:
+            print(f"pygame mixer init failed in SpeakWithAIScreen: {e}")
 
         self.COLOR_BG_TOP = (74, 144, 226)       
         self.COLOR_BG_BOTTOM = (120, 255, 230)   
@@ -25,13 +34,20 @@ class SpeakWithAIScreen:
 
         self.font = pygame.font.SysFont("Segoe UI Emoji", 30)
         self.large_font = pygame.font.SysFont("Segoe UI Emoji", 50)
-        self.status_font = pygame.font.SysFont("Segoe UI Emoji", 24)
+        self.hint_font = pygame.font.SysFont("Segoe UI Emoji", 36, bold=True)
+        self.status_font = pygame.font.SysFont("Segoe UI Emoji", 26)
 
-        self.btn_back_rect = pygame.Rect(40, 110, 80, 50)
-        self.btn_mic_rect = pygame.Rect(320, 450, 360, 80)     
-        self.btn_speaker_rect = pygame.Rect(580, 320, 60, 60) 
-        self.btn_restart_rect = pygame.Rect(240, 430, 240, 75)
-        self.btn_home_rect = pygame.Rect(520, 430, 240, 75)
+        self.btn_back_rect = pygame.Rect(40, 30, 80, 50)
+        self.btn_mic_rect = pygame.Rect(320, 520, 360, 90)
+        self.btn_speaker_rect = pygame.Rect(655, 310, 70, 70)
+        self.btn_restart_rect = pygame.Rect(220, 640, 240, 75)
+        self.btn_home_rect = pygame.Rect(520, 640, 240, 75)
+
+        self.hint_bounce_phase = 0.0
+        self.hint_bounce_amplitude = 10
+        self.hint_bounce_speed = 0.013
+
+        self.auto_audio_played = False  # Track if pre-recorded audio has been auto-played
 
         self.pressed_back_btn = False
         self.pressed_mic_btn = False
@@ -41,6 +57,7 @@ class SpeakWithAIScreen:
         self.status_text = "Click START MIC to record your voice! 🎙️"
         self.is_listening = False  
         self.recognized_text = ""
+        self.hint_text = ""  # For displaying hints
 
         self.show_meme = False
         self.is_correct_answer = False  
@@ -93,10 +110,43 @@ class SpeakWithAIScreen:
         self.question_count = 0
         self.MAX_QUESTIONS = 10  
         self.game_over = False
+        
+        self.shake_effect = ShakeEffect(intensity=6, duration=12)
+        self.particles = []
 
         self.loaded_images = {}
         self.draw_gradient_background()
-        self.next_question()
+        
+        try:
+            self.audio = AudioManager() if AudioManager else None
+            if not self.audio:
+                print("SpeakWithAIScreen: AudioManager unavailable")
+        except Exception as e:
+            print(f"SpeakWithAIScreen audio init failed: {e}")
+            self.audio = None
+        
+        self.instruction_played = False
+        self.bg_music_path = "assets/sounds/background.mp3"
+        if not os.path.exists(self.bg_music_path):
+            self.bg_music_path = "assets/sounds/background.wav"
+        if self.audio:
+            try:
+                self.audio.play_music(self.bg_music_path, volume=0.10)
+                self.audio.speak(
+                    "Welcome to Speak with AI! Look at the picture and the hint, then press START MIC and say the word clearly. Let's do this with energy!"
+                )
+            except Exception as e:
+                print(f"SpeakWithAIScreen background music or instruction voice failed: {e}")
+        else:
+            print("SpeakWithAIScreen: no audio manager, background music skipped")
+
+        try:
+            self.next_question()
+        except Exception as e:
+            print(f"SpeakWithAIScreen next_question failed: {e}")
+            self.current_question = None
+            self.game_over = True
+
 
     def draw_gradient_background(self):
         self.bg_surface = pygame.Surface((self.screen_width, self.screen_height))
@@ -140,20 +190,40 @@ class SpeakWithAIScreen:
         audio_path = self.current_question.get("audio")
         if audio_path and os.path.exists(audio_path):
             try:
-                pygame.mixer.music.load(audio_path)
-                pygame.mixer.music.play()
-            except Exception:
-                pass
+                if self.audio:
+                    self.audio.play_file(audio_path)
+                else:
+                    pygame.mixer.music.load(audio_path)
+                    pygame.mixer.music.play()
+            except Exception as e:
+                print(f"play_pre_recorded_audio failed: {e}")
 
     def next_question(self):
         if self.question_count >= self.MAX_QUESTIONS:
             return
         self.question_count += 1
         self.current_question = self.ai.generate_question()
+        self.hint_text = self.current_question.get("hint", "")
         self.status_text = "Click START MIC to record your voice! 🎙️"
         self.recognized_text = ""
         self.is_listening = False
         self.show_meme = False
+        self.auto_audio_played = False  # Reset for new question to auto-play audio
+
+        if self.audio and self.bg_music_path:
+            try:
+                self.audio.play_music(self.bg_music_path, volume=0.10)
+            except Exception as e:
+                print(f"SpeakWithAIScreen background music restart failed: {e}")
+
+        # Auto-play pre-recorded audio when question appears (only once per question)
+        if not self.auto_audio_played:
+            try:
+                self.play_pre_recorded_audio()
+                self.auto_audio_played = True  # Mark audio as played
+            except Exception as e:
+                print(f"Failed to auto-play audio: {e}")
+                pass
 
     def audio_callback(self, indata, frames, time, status):
         if self.is_listening:
@@ -163,6 +233,14 @@ class SpeakWithAIScreen:
         if not self.speech_enabled:
             self.status_text = "Speech unavailable. Install vosk+sounddevice and model."
             return
+        
+        # Pause background music and any other sounds
+        if self.audio:
+            try:
+                self.audio.stop_music()
+            except Exception as e:
+                print(f"Failed to stop background music: {e}")
+        
         self.audio_queue.queue.clear()
         self.recording_start_time = pygame.time.get_ticks()
         self.audio_stream = self._sd.RawInputStream(
@@ -209,9 +287,31 @@ class SpeakWithAIScreen:
             self.is_correct_answer = True
             self.status_text = "🎉 EXCELLENT! Correct Pronunciation! 🎉"
             self.ai.score += 20
+            self.ai.correct_count += 1
+            try:
+                if self.audio:
+                    self.audio.play_file("assets/sounds/applause.mp3", volume=0.50)
+                    self.audio.play_file("assets/sounds/correct.wav")
+                    self.audio.speak("Excellent! Great pronunciation!")
+            except Exception:
+                pass
         else:
             self.is_correct_answer = False
             self.status_text = f"Oops! It should be {correct_word}."
+            self.ai.incorrect_count += 1
+            try:
+                if self.audio:
+                    self.audio.play_file("assets/sounds/try_again.mp3")
+                    self.audio.speak(f"Try again. The word is {correct_word}", prefer="gTTS")
+            except Exception:
+                pass
+        
+        # Resume background music after showing the meme result
+        if self.audio and self.bg_music_path:
+            try:
+                self.audio.play_music(self.bg_music_path, volume=0.10)
+            except Exception as e:
+                print(f"Failed to resume background music: {e}")
 
     def draw_game_elements(self, target_surf):
         progress_rect = pygame.Rect(40, 30, 220, 60)
@@ -237,11 +337,25 @@ class SpeakWithAIScreen:
         spk_text = self.font.render("🔊", True, self.TEXT_WHITE)
         target_surf.blit(spk_text, spk_text.get_rect(center=self.btn_speaker_rect.center))
 
+        # Display hint text with bounce effect
+        if self.hint_text and not self.is_listening:
+            self.hint_bounce_phase += self.hint_bounce_speed
+            hint_y = 420 + math.sin(self.hint_bounce_phase) * self.hint_bounce_amplitude
+            hint_surf = self.hint_font.render(self.hint_text, True, (231, 76, 60))
+            hint_rect = hint_surf.get_rect(center=(self.screen_width // 2, int(hint_y)))
+            pygame.draw.rect(target_surf, (255, 255, 255), hint_rect.inflate(30, 16), border_radius=20)
+            pygame.draw.rect(target_surf, (231, 76, 60), hint_rect.inflate(30, 16), width=3, border_radius=20)
+            target_surf.blit(hint_surf, hint_rect)
+
+            status_y = hint_rect.bottom + 30
+        else:
+            status_y = 430
+
         status_surf = self.status_font.render(self.status_text, True, self.TEXT_DARK)
-        target_surf.blit(status_surf, status_surf.get_rect(center=(self.screen_width // 2, 410)))
+        target_surf.blit(status_surf, status_surf.get_rect(center=(self.screen_width // 2, status_y)))
 
         mic_color = (231, 76, 60) if self.is_listening else (46, 213, 115)
-        pygame.draw.rect(target_surf, mic_color, self.btn_mic_rect, border_radius=25)
+        pygame.draw.rect(target_surf, mic_color, self.btn_mic_rect, border_radius=30)
         
         if self.is_listening:
             elapsed = (pygame.time.get_ticks() - self.recording_start_time) // 1000
@@ -331,6 +445,9 @@ class SpeakWithAIScreen:
 
         if not self.game_over:
             if self.btn_back_rect.collidepoint(mouse_pos):
+                # Update stats before going back
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, {"action": "GO_HOME"}))
                 return
 
@@ -348,11 +465,17 @@ class SpeakWithAIScreen:
                     self.stop_and_analyze()
         else:
             if self.btn_restart_rect.collidepoint(mouse_pos):
-                self.ai.score = 0
+                # Update stats before resetting for next game
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
+                self.ai.reset_progress()
                 self.question_count = 0
                 self.game_over = False
                 self.next_question()
             elif self.btn_home_rect.collidepoint(mouse_pos):
+                # Update stats before going home
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, {"action": "GO_HOME"}))
 
     def handle_release(self, mouse_pos):

@@ -2,6 +2,11 @@ import pygame
 import sys
 import os
 import random
+from ai_engine.effects import ConfettiParticle, ShakeEffect, StarParticle
+try:
+    from ai_engine.audio_manager import AudioManager
+except Exception:
+    AudioManager = None
 
 class GameplayScreen:
     def __init__(self, screen, ai_engine):
@@ -50,6 +55,21 @@ class GameplayScreen:
         self.loaded_images = {}
         self.draw_gradient_background()
 
+        try:
+            self.audio = AudioManager() if AudioManager else None
+        except Exception:
+            self.audio = None
+
+        self.instruction_played = False
+        if self.audio:
+            bg_music_path = "assets/sounds/background.mp3"
+            if not os.path.exists(bg_music_path):
+                bg_music_path = "assets/sounds/background.wav"
+            try:
+                self.audio.play_music(bg_music_path, volume=0.10)
+            except Exception as e:
+                print(f"GameplayScreen background music failed: {e}")
+
         self.question_count = 0        
         self.MAX_QUESTIONS = 10        
         self.game_over = False         
@@ -64,6 +84,8 @@ class GameplayScreen:
         self.shake_timer = 0
         self.confettis = []
         self.selected_button_index = None
+        self.shake_effect = ShakeEffect(intensity=8, duration=15)
+        self.particles = []
         
         self.next_question()
 
@@ -116,6 +138,10 @@ class GameplayScreen:
         self.pressed_end_btn = None
         self.pressed_back_btn = False
         self.shake_offset = 0
+
+        if not self.instruction_played and self.audio:
+            self.audio.play_file("assets/sounds/game_instruction.mp3")
+            self.instruction_played = True
 
     def draw(self):
         self.screen.blit(self.bg_surface, (0, 0))
@@ -259,6 +285,11 @@ class GameplayScreen:
                 
             if self.btn_back_rect.collidepoint(mouse_pos):
                 self.pressed_back_btn = True
+                # Update stats before going back
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
+                if self.audio:
+                    self.audio.stop_music()
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, {"action": "GO_HOME"}))
                 return
 
@@ -269,8 +300,10 @@ class GameplayScreen:
                     break
         else:
             if self.btn_restart_rect.collidepoint(mouse_pos):
-                self.ai.score = 0
-                self.ai.mistake_tracker = {}
+                # Update stats before resetting for next game
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
+                self.ai.reset_progress()
                 self.question_count = 0
                 self.game_over = False
                 self.show_meme = False
@@ -280,6 +313,9 @@ class GameplayScreen:
                 self.next_question()
                 
             elif self.btn_home_rect.collidepoint(mouse_pos):
+                # Update stats before going home
+                if self.ai.game_mode:
+                    self.ai.update_stats(self.ai.game_mode, self.ai.correct_count, self.ai.incorrect_count, self.ai.score)
                 self.pressed_end_btn = None
                 pygame.event.post(pygame.event.Event(pygame.USEREVENT, {"action": "GO_HOME"}))
 
@@ -301,13 +337,36 @@ class GameplayScreen:
             if not self.meme_image:
                 self.meme_image = self.load_image("assets/memes/happy.png", (360, 360))
             self.create_confetti()
+            
+            # Create star particles
+            for _ in range(20):
+                particle = StarParticle(random.randint(300, 700), random.randint(150, 400))
+                self.particles.append(particle)
+            
+            # play celebration sounds
+            try:
+                if self.audio:
+                    self.audio.play_file("assets/sounds/applause.mp3", volume=0.75)
+                    self.audio.play_file("assets/sounds/correct.wav")
+                    self.audio.speak("Yay! That's correct. Great job!")
+            except Exception:
+                pass
         else:
             self.meme_image = self.load_image("assets/images/memes/try_again.png", (360, 360))
             if not self.meme_image:
                 self.meme_image = self.load_image("assets/memes/try_again.png", (360, 360))
-            self.shake_timer = 25
+            
+            # Trigger screen shake for wrong answer
+            self.shake_effect = ShakeEffect(intensity=8, duration=15)
+            
             if result["hint"]:
                 self.hint_text = result["hint"]
+            try:
+                if self.audio:
+                    self.audio.play_file("assets/sounds/try_again.mp3")
+                    self.audio.speak("Oops, try again. Here's a hint: " + (result["hint"] or ""))
+            except Exception:
+                pass
 
         self.show_meme = True
         self.meme_scale = 0.0

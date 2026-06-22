@@ -1,12 +1,10 @@
 # game_data/vocabulary.py
 
-# 4-6 yoshli bolalar uchun boshlang'ich so'zlar ro'yxati
-# Keyinchalik assets/images/ papkasiga shu nomdagi rasmlarni tashlaymiz
 WORDS_DATASET = [
     {
         "word": "dog",
         "image": "assets/images/dog.png",
-        "sound": "assets/sounds/dog.mp3" # Agar keyinchalik ovoz qo'shsak
+        "sound": "assets/sounds/dog.mp3"
     },
     {
         "word": "cat",
@@ -27,5 +25,40 @@ WORDS_DATASET = [
         "word": "lion",
         "image": "assets/images/lion.png",
         "sound": "assets/sounds/lion.mp3"
+    },
+    {
+        "word": "elephant",
+        "image": "assets/images/elephant.png",
+        "sound": "assets/sounds/elephant.mp3"
+    },
+    {
+        "word": "car",
+        "image": "assets/images/car.png",
+        "sound": "assets/sounds/car.mp3"
+    },
+    {
+        "word": "sun",
+        "image": "assets/images/sun.png",
+        "sound": "assets/sounds/sun.mp3"
+    },
+    {
+        "word": "book",
+        "image": "assets/images/book.png",
+        "sound": "assets/sounds/book.mp3"
+    },
+    {
+        "word": "milk",
+        "image": "assets/images/milk.png",
+        "sound": "assets/sounds/milk.mp3"
+    },
+    {
+        "word": "bird",
+        "image": "assets/images/bird.png",
+        "sound": "assets/sounds/bird.mp3"
+    },
+    {
+        "word": "fish",
+        "image": "assets/images/fish.png",
+        "sound": "assets/sounds/fish.mp3"
     }
 ]

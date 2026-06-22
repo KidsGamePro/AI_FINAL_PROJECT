@@ -1,0 +1,12 @@
+{
+  "card_game": {
+    "correct": 99,
+    "incorrect": 1,
+    "total_score": 999
+  },
+  "speak_with_ai": {
+    "correct": 20,
+    "incorrect": 5,
+    "total_score": 200
+  }
+}
