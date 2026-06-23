@@ -3,6 +3,7 @@ import sys
 import os
 import json
 import math
+import random
 import queue
 from ai_engine.effects import StarParticle, ShakeEffect
 
@@ -10,7 +11,6 @@ try:
     from ai_engine.audio_manager import AudioManager
 except Exception:
     AudioManager = None
-
 
 class SpeakWithAIScreen:
     def __init__(self, screen, ai_engine):
@@ -289,7 +289,7 @@ class SpeakWithAIScreen:
                 print(f"Failed to resume background music: {e}")
 
     def draw_game_elements(self, target_surf):
-        progress_rect = pygame.Rect(40, 30, 220, 60)
+        progress_rect = pygame.Rect(120, 30, 220, 60)
         pygame.draw.rect(target_surf, (116, 185, 255), progress_rect, border_radius=20)
         pygame.draw.rect(target_surf, (9, 132, 227), progress_rect, width=3, border_radius=20)
         progress_text = self.font.render(f"📋 {self.question_count}/{self.MAX_QUESTIONS}", True, self.TEXT_WHITE)
@@ -401,7 +401,7 @@ class SpeakWithAIScreen:
             self.draw_game_elements(scene_surf)
             if self.recognized_text and not self.is_listening:
                 rec_surf = self.font.render(f'You said: "{self.recognized_text}"', True, (243, 156, 18))
-                scene_surf.blit(rec_surf, rec_surf.get_rect(center=(self.screen_width // 2, 580)))
+                scene_surf.blit(rec_surf, rec_surf.get_rect(center=(self.screen_width // 2, 500)))
         else:
             # End screen
             scene_surf.blit(self.bg_surface, (0, 0))

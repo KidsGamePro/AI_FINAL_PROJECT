@@ -55,6 +55,41 @@ class EnglishAIEngine(AdaptiveAIEngine):
             self.save_stats()
 
 
+    def load_stats(self):
+        """Load stats from file"""
+        try:
+            if os.path.exists(self.stats_file):
+                with open(self.stats_file, 'r') as f:
+                    self.stats = json.load(f)
+            else:
+                self.save_stats()
+        except Exception as e:
+            print(f"Error loading stats: {e}")
+
+    def save_stats(self):
+        """Save stats to file"""
+        try:
+            os.makedirs(os.path.dirname(self.stats_file) or ".", exist_ok=True)
+            with open(self.stats_file, 'w') as f:
+                json.dump(self.stats, f, indent=2)
+        except Exception as e:
+            print(f"Error saving stats: {e}")
+
+    def update_stats(self, game_mode, correct_ans, incorrect_ans, score_gained):
+        """Update stats for the game mode and save"""
+        if game_mode in self.stats:
+            self.stats[game_mode]["correct"] += correct_ans
+            self.stats[game_mode]["incorrect"] += incorrect_ans
+            self.stats[game_mode]["total_score"] += score_gained
+            self.save_stats()
+
+    def reset_progress(self):
+        """Resets score and answer statistics. Called whenever a fresh game/session starts."""
+        self.score = 0
+        self.mistake_tracker = {}
+        self.correct_count = 0
+        self.incorrect_count = 0
+
 def main():
     pygame.init()
     SCREEN_WIDTH = 1000

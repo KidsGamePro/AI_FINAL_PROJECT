@@ -9,7 +9,6 @@ try:
 except Exception:
     AudioManager = None
 
-
 class GameplayScreen:
     def __init__(self, screen, ai_engine):
         self.screen = screen
@@ -138,6 +137,10 @@ class GameplayScreen:
 
         if not self.instruction_played and self.audio:
             self.audio.speak("In this game, choose the correct word that matches the picture. Have fun!")
+            self.instruction_played = True
+
+        if not self.instruction_played and self.audio:
+            self.audio.play_file("assets/sounds/game_instruction.mp3")
             self.instruction_played = True
 
     def draw(self):
@@ -347,9 +350,10 @@ class GameplayScreen:
                     self.audio.speak("Wow! That is correct, so clever!")
             except Exception:
                 pass
-            # self.show_meme = True
-            # self.meme_scale = 0.0
-            # self.meme_start_time = pygame.time.get_ticks()
+            # Show success meme and start its animation/timer so next_question is called after
+            self.show_meme = True
+            self.meme_scale = 0.0
+            self.meme_start_time = pygame.time.get_ticks()
         else:
             # Trigger screen shake
             self.shake_effect.trigger()

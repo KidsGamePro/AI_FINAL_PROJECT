@@ -9,7 +9,6 @@ try:
 except Exception:
     AudioManager = None
 
-
 class StartScreen:
     def __init__(self, screen, ai_engine):
         self.screen = screen

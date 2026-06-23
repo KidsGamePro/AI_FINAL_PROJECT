@@ -1,8 +1,8 @@
 {
   "card_game": {
-    "correct": 1,
+    "correct": 2,
     "incorrect": 0,
-    "total_score": 15
+    "total_score": 30
   },
   "speak_with_ai": {
     "correct": 0,
