@@ -143,6 +143,10 @@ class GameplayScreen:
             self.audio.play_file("assets/sounds/game_instruction.mp3")
             self.instruction_played = True
 
+        if not self.instruction_played and self.audio:
+            self.audio.play_file("assets/sounds/game_instruction.mp3")
+            self.instruction_played = True
+
     def draw(self):
         # Render scene on temporary buffer to support global screen shaking
         scene_surf = pygame.Surface((self.screen_width, self.screen_height))
