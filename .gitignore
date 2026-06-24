@@ -1,0 +1,5 @@
+﻿__pycache__/
+*.pyc
+.vscode/
+list_voices.ps1
+assets/game_stats.json
