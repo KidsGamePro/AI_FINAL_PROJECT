@@ -87,8 +87,37 @@ Through this project, our team gained practical experience in:
 
 ## 📸 Screenshots
 
-*(Add screenshots of your Start Screen, Gameplay, Voice Mode, and Statistics page here.)*
+<table align="center">
 
+<tr>
+
+<td align="center">
+<img src="screenshots/1_start.png" width="420" alt="Home Screen"><br>
+<b>Home Screen</b>
+</td>
+
+<td align="center">
+<img src="screenshots/2_gameplay.png" width="420" alt="Instruction Screen"><br>
+<b>Instruction Screen</b>
+</td>
+
+</tr>
+
+<tr>
+
+<td align="center">
+<img src="screenshots/3_voice_mode.png" width="420" alt="Gameplay"><br>
+<b>Gameplay</b>
+</td>
+
+<td align="center">
+<img src="screenshots/4_statistics.png" width="420" alt="Voice Mode"><br>
+<b>Voice Recognition</b>
+</td>
+
+</tr>
+
+</table>
 ---
 
 ## 🚀 Future Improvements
