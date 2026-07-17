@@ -92,13 +92,13 @@ Through this project, our team gained practical experience in:
 <tr>
 
 <td align="center">
-<img src="screenshots/1_start.png" width="420" alt="Home Screen"><br>
+<img src="screenshots/1_start.png" width="220" alt="Home Screen"><br>
 <b>Home Screen</b>
 </td>
 
 <td align="center">
-<img src="screenshots/2_gameplay.png" width="420" alt="Instruction Screen"><br>
-<b>Instruction Screen</b>
+<img src="screenshots/2_gameplay.png" width="220" alt="Instruction Screen"><br>
+<b>Vocabulary section</b>
 </td>
 
 </tr>
@@ -106,13 +106,13 @@ Through this project, our team gained practical experience in:
 <tr>
 
 <td align="center">
-<img src="screenshots/3_voice_mode.png" width="420" alt="Gameplay"><br>
-<b>Gameplay</b>
+<img src="screenshots/3_voice_mode.png" width="220" alt="Gameplay"><br>
+<b>Voice Interface</b>
 </td>
 
 <td align="center">
-<img src="screenshots/4_statistics.png" width="420" alt="Voice Mode"><br>
-<b>Voice Recognition</b>
+<img src="screenshots/4_statistics.png" width="220" alt="Voice Mode"><br>
+<b>Statistics</b>
 </td>
 
 </tr>
