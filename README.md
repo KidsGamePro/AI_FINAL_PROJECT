@@ -83,42 +83,33 @@ Through this project, our team gained practical experience in:
 - Educational software design
 - Speech recognition integration
 
----
-
 ## 📸 Screenshots
 
 <table align="center">
-
 <tr>
 
 <td align="center">
-<img src="screenshots/1_start.png" width="220" alt="Home Screen"><br>
+<img src="screenshots/1_start.png" width="200" alt="Home Screen"><br>
 <b>Home Screen</b>
 </td>
 
 <td align="center">
-<img src="screenshots/2_gameplay.png" width="220" alt="Instruction Screen"><br>
-<b>Vocabulary section</b>
+<img src="screenshots/2_gameplay.png" width="200" alt="Vocabulary Section"><br>
+<b>Vocabulary Quiz</b>
 </td>
 
-</tr>
-
-<tr>
-
 <td align="center">
-<img src="screenshots/3_voice_mode.png" width="220" alt="Gameplay"><br>
+<img src="screenshots/3_voice_mode.png" width="200" alt="Voice Mode"><br>
 <b>Voice Interface</b>
 </td>
 
 <td align="center">
-<img src="screenshots/4_statistics.png" width="220" alt="Voice Mode"><br>
+<img src="screenshots/4_statistics.png" width="200" alt="Statistics"><br>
 <b>Statistics</b>
 </td>
 
 </tr>
-
 </table>
----
 
 ## 🚀 Future Improvements
 
